@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
-	"log"
+	"strconv"
 	"github.com/joho/godotenv"
-	"io/ioutil"
+	"reflect"
 )
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
@@ -29,6 +30,32 @@ func getHello(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got /hello request\n")
 	io.WriteString(w, "Hello, HTTP!\n")
 }
+func getCoordinates(city string) (float64, float64) {
+	api_key := goDotEnvVariable("API_KEY")
+	api := goDotEnvVariable("GEOENCODING_API")
+	url := api+"?q="+city+"&limit=1&appid="+api_key
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Add("X-API-Key", api_key)
+    client := &http.Client{}
+    resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err)
+		return -1, -1
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	//fmt.Println(body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+		return -1, -1
+	}
+	fmt.Printf("my type is: ")
+	fmt.Println( reflect.TypeOf(body))
+	latValue := 51.50
+	lonValue := -0.12 
+	return latValue, lonValue
+}
 func getWeatherReport(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/getWeatherReport" {
 		http.NotFound(w, r)
@@ -44,12 +71,14 @@ func getWeatherReport(w http.ResponseWriter, r *http.Request) {
 	// fmt.Println(api_key)
 	// fmt.Println(api_key)
 	params:=r.URL.Query()
-	api := goDotEnvVariable("API")
+	api := goDotEnvVariable("WEATHER_API")
 	// fmt.Println(api)
-	latValue := params.Get("lat")
-	lonValue := params.Get("lon")
-	fmt.Println(latValue)
-	fmt.Println(lonValue)
+	city := params.Get("city")
+	lat, lon := getCoordinates(city)
+	fmt.Println(lat)
+	fmt.Println(lon)
+	latValue := strconv.FormatFloat(lat, 'E', -1, 64)
+	lonValue := strconv.FormatFloat(lon, 'E', -1, 64)
 	url := api+"?lat="+latValue+"&lon="+lonValue+"&appid="+api_key
 	fmt.Println(url)
 	req, err := http.NewRequest("GET", url, nil)
@@ -62,15 +91,13 @@ func getWeatherReport(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading response:", err)
 		return
 	}
 
-	fmt.Println(string(body))
-
-
+	fmt.Println("body in weather report " + string(body))
 }
 func main() {
 	godotenv.Load(".env")
