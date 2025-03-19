@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"io"
-	"html"
 	"net/http"
 	"os"
 	"log"
 	"github.com/joho/godotenv"
+	"io/ioutil"
 )
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
@@ -30,21 +30,48 @@ func getHello(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Hello, HTTP!\n")
 }
 func getWeatherReport(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
+	if r.URL.Path != "/getWeatherReport" {
 		http.NotFound(w, r)
 		return
 	}
 	if r.Method == "GET" {
-		fmt.Fprintf(w, "GET, %q", html.EscapeString(r.URL.Path))
+		//fmt.Fprintf(w, "GET, %q", html.EscapeString(r.URL.Path))
 	} else {
 		http.Error(w, "Invalid request method.", 405)
+		return 
 	}
 	api_key:=goDotEnvVariable("API_KEY")
-	fmt.Println(api_key)
-	// params:=r.URL.Query()
-	
-}
+	// fmt.Println(api_key)
+	// fmt.Println(api_key)
+	params:=r.URL.Query()
+	api := goDotEnvVariable("API")
+	// fmt.Println(api)
+	latValue := params.Get("lat")
+	lonValue := params.Get("lon")
+	fmt.Println(latValue)
+	fmt.Println(lonValue)
+	url := api+"?lat="+latValue+"&lon="+lonValue+"&appid="+api_key
+	fmt.Println(url)
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Add("X-API-Key", api_key)
+    client := &http.Client{}
+    resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err)
+		return
+	}
+	defer resp.Body.Close()
 
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+		return
+	}
+
+	fmt.Println(string(body))
+
+
+}
 func main() {
 	godotenv.Load(".env")
 	http.HandleFunc("/", getRoot)
