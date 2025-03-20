@@ -6,7 +6,19 @@ function Popup() {
 
   const handleWeatherReport = (e) => {
     e.preventDefault();
-    
+    console.log(city)
+    alert("button clicked")
+    const response = axios.post("http://localhost:5000/getWeatherReport", {
+      city: city,
+    });
+    try {
+      if (response) {
+        console.log(response);
+
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <div>
