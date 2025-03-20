@@ -8,8 +8,13 @@ import (
 	"os"
 	"strconv"
 	"github.com/joho/godotenv"
-	"reflect"
+	"encoding/json"
+	"strings"
 )
+type ApiResponse struct {
+	Lat   float64    `json:"lat"`
+	Lon float64 `json:"lon"`
+}
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got / request\n")
@@ -51,9 +56,17 @@ func getCoordinates(city string) (float64, float64) {
 		return -1, -1
 	}
 	fmt.Printf("my type is: ")
-	fmt.Println( reflect.TypeOf(body))
-	latValue := 51.50
-	lonValue := -0.12 
+	var apiResponse ApiResponse
+	response :=  string(body)
+	fmt.Println(response)
+    response = strings.TrimPrefix(response, "[")
+    response = strings.TrimSuffix(response, "]") 
+	err = json.Unmarshal([]byte(response), &apiResponse)
+	if err != nil {
+        log.Fatal(err)
+    }
+	latValue := apiResponse.Lat
+	lonValue := apiResponse.Lon
 	return latValue, lonValue
 }
 func getWeatherReport(w http.ResponseWriter, r *http.Request) {
