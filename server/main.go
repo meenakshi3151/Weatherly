@@ -3,42 +3,44 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/joho/godotenv"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 type ApiResponse struct {
 	Lat float64 `json:"lat"`
 	Lon float64 `json:"lon"`
 }
+
 func enableCORS(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	
-	// Allow requests from any origin
-	
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	
-	// Allow specified HTTP methods
-	
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	
-	// Allow specified headers
-	
-	w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept")
-	
-	// Continue with the next handler
-	
-	next.ServeHTTP(w, r)
-	
+
+		// Allow requests from any origin
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		// Allow specified HTTP methods
+
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+
+		// Allow specified headers
+
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept")
+
+		// Continue with the next handler
+
+		next.ServeHTTP(w, r)
+
 	})
-	
-	}	
+
+}
 func getRoot(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got / request\n")
 	io.WriteString(w, "This is my website!\n")
@@ -138,9 +140,13 @@ func getWeatherReport(w http.ResponseWriter, r *http.Request) {
 }
 func main() {
 	godotenv.Load(".env")
-	http.HandleFunc("/", getRoot)
-	http.HandleFunc("/hello", getHello)
-	http.HandleFunc("/getWeatherReport", getWeatherReport)
+	router := mux.NewRouter()
+	router.Use(enableCORS)
+	router.Schemes("http")
+	router.Methods("GET", "POST")
+	router.HandleFunc("/", getRoot)
+	router.HandleFunc("/hello", getHello)
+	router.HandleFunc("/getWeatherReport", getWeatherReport)
 	port := ":5000"
 	fmt.Println("Server running on port 5000")
 	err := http.ListenAndServe(port, nil) // A blocking call as it will listen only once executed
