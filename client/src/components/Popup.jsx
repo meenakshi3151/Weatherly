@@ -4,29 +4,20 @@ import axios from "axios";
 function Popup() {
   const [city, setCity] = useState("");
 
-  const handleWeatherReport = (e) => {
+  const handleWeatherReport = async (e) => {
     e.preventDefault();
-    console.log(city)
-    // alert("button clicked")
-    const config = {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET,PUT,POST,DELETE,PATCH,OPTIONS"
-      }
-    };
-    
-    const response = axios.get("http://localhost:5000/getWeatherReport", config,  {
-      city: city,
-    });
+  
     try {
-      if (response) {
-        console.log(response);
-
-      }
+      const response = await axios.get("http://localhost:5000/getWeatherReport", {
+        params: { city: city },  // Send city as a query parameter
+      });
+  
+      console.log(response.data);
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching weather report:", error);
     }
   };
+  
   return (
     <div>
       <button
