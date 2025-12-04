@@ -1,0 +1,30 @@
+# Binaries for programs
+/go-build/
+/*.exe
+/*.exe~
+/*.dll
+/*.so
+/*.dylib
+/vendor/ # Remove this line if you need to commit the vendor directory
+
+# Test binary, should not be ignored
+#!/*.test
+
+# End of Test binary
+
+# Output of the go coverage tool
+/coverage.out
+/coverage.html
+
+# Output of the go profiler
+/pprof/
+
+# Common editor and OS files
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+.idea/
+.vscode/
+
+# Environment variables
+.env
